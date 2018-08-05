@@ -1,0 +1,101 @@
+<!DOCTYPE html><html lang="zh-Hans"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description"><title>iOS Accessibility 指南 | 我不是掌柜</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/8.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">iOS Accessibility 指南</h1><a id="logo" href="/.">我不是掌柜</a><p class="description">一个iOS开发工程师</p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/about/"><i class="fa fa-user"> 关于</i></a><a href="/atom.xml"><i class="fa fa-rss"> RSS</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">iOS Accessibility 指南</h1><div class="post-meta">Aug 3, 2018<span> | </span><span class="category"><a href="/categories/iOS/">iOS</a></span></div><div class="post-content"><p>开发者经常会为用户开发一些令人充满惊喜的App。但是，开发者真的为每一个潜在的用户都做适配了么？是否每个人都可以真正使用你的APP呢？<br>设计APP、产品或者任何类型的服务，都要考虑到所有用户，包括视力、运动、学习或者听力有障碍的人。<br>Apple不断地向开发者提供持续更新的工具，以便在设计的时候考虑到辅助功能。<br>在这个指南中，你将从一个已经开发完成的APP入手，让其变得更易于访问。你将会学习到以下知识点：</p>
+<ol>
+<li>如何使用VoiceOver     </li>
+<li>如何使用Accessibility Inspector    </li>
+<li>如何在UIKit中使用accessibility元素    </li>
+<li>如果让你的APP为残疾人士提供更好的用户体验    </li>
+</ol>
+<p>本指南使用的是Swift语言，如果你对Swift了解不多，可以先学习Swift，然后再阅读。</p>
+<blockquote>
+<p>注意：你需要一台物理设备来进行VoiceOver实验–这个accessibility特性不支持模拟器</p>
+</blockquote>
+<h2 id="开始"><a href="#开始" class="headerlink" title="开始"></a>开始</h2><p>在学习过程中你用到的Demo APP是一个类似食谱的App，它展示了不同难度级别的食谱，而且可以对你做过的食物进行评分。<br>你可以从<a href="https://koenig-media.raywenderlich.com/uploads/2016/09/Recipe_starter.zip" target="_blank" rel="noopener">这里</a>下载这个Demo APP。在你运行到真机之前，你需要配置相关的签名。(具体配置就不在多说了，如果你想在模拟器运行，则不用配置)。<br>运行起来之后，可以先对此工程进行简单的了解。下面是对几个类的介绍：</p>
+<ol>
+<li>RecipeInstrucationViewController.swift 点击列表的详情页    </li>
+<li>InstructionViewModel.swift是RecipeInstructionsViewController的数据源。    </li>
+<li>RecipeCell.swift 是rootviewController的表格中的cell。    </li>
+<li>Recipe.swift是model对象，代表一个recipe。    </li>
+<li>InstructionCell.swift是详情页的cell，一个checkbox+可添加删除线的label。当checkbok选中时，label添加删除线    </li>
+<li>RecipeListViewController.swift是根视图，展示列表    </li>
+</ol>
+<p>了解了本工程的大体结构之后，我们就开始添加一些accessibility特性。</p>
+<h2 id="为什么是Accessibility？"><a href="#为什么是Accessibility？" class="headerlink" title="为什么是Accessibility？"></a>为什么是Accessibility？</h2><p>开始编码之前，我们首先要理解accessibility的好处：</p>
+<ol>
+<li>无论你是使用的KIF框架还是进行Xcode中的UI测试，设计可访问性的应用程序都可以更轻松地编写功能测试。</li>
+<li>你还可以通过让更多的用户使用你的APP来扩大市场和用户客群。</li>
+<li>如果你为政府机构工作，则需要进行508合规性检测，其中规定所有用户都必须可以使用此APP以及其中的功能。</li>
+<li>此外，如果你做的APP给用户提供了帮助，哪怕微不足道，也会令你很有成就感。</li>
+</ol>
+<h2 id="Enabling-VoiceOver"><a href="#Enabling-VoiceOver" class="headerlink" title="Enabling VoiceOver"></a>Enabling VoiceOver</h2><p>VocieOver screen-reading 工具可以让用户在不看屏幕的情况下和你的软件进行交互，它是专门为有视觉障碍的用户而设计的。<br>VoiceOver是UI和用户touch输入的链接，它提供了不同组件的可听性描述以及应用程序中所采取操作的可听性反馈。<br>要想使用VoiceOver，首先打开设置app，然后通用–&gt;辅助功能(Accessibility)–&gt;VoiceOver(旁白)，打开即可。</p>
+<h2 id="如何使用VoiceOver"><a href="#如何使用VoiceOver" class="headerlink" title="如何使用VoiceOver"></a>如何使用VoiceOver</h2><p>打开了VoiceOver，接下来对一些操作手势进行简单的学习：</p>
+<ul>
+<li>单击。你可以在屏幕上点击任一点，VoiceOver都会根据项目的可访问属性说出识别信息，后面会详细介绍</li>
+<li>双击将执行选中的选项。</li>
+<li>用力下按可以对表格进行滑动操作</li>
+</ul>
+<h2 id="使用VoiceOver"><a href="#使用VoiceOver" class="headerlink" title="使用VoiceOver"></a>使用VoiceOver</h2><p>在设置中打开VoiceOver之后，运行食谱APP到手机，然后你可以按照上面的操作对该APP进行简单操作，你会发现一些问题：</p>
+<ol>
+<li>图像的描述并不准确，只是读出了图片的名称</li>
+<li>并没有说出每个食谱的困难等级，导致此功能对于使用VoiceOver的用户无效。</li>
+</ol>
+<p>接下来就来解决这两个问题。</p>
+<h2 id="Accessibility（辅助功能）属性"><a href="#Accessibility（辅助功能）属性" class="headerlink" title="Accessibility（辅助功能）属性"></a>Accessibility（辅助功能）属性</h2><p>为了支持可访问性，辅助功能属性是你必须要实现的核心组件。<br>VoiceOver使用这些属性为用户提供有关应用中显示元素的可听信息。<br>辅助功能有四个属性：</p>
+<ol>
+<li>Label：一种是被控件或者视图的方法，例如“后退按钮” 和 “食谱图像”</li>
+<li>Traits：描述元素的状态、行为或用法。按钮的特征可能是”已选中“</li>
+<li>Hint（提示）：描述元素完成的操作，例如：”显示配方详情“</li>
+<li>Frame：元素在屏幕中的frame，格式为CGRect。VoiceOver会说出CGRect的内容</li>
+<li>Value：元素的值，想想一下使用进度条或者滑动条，当前的value可能会读作：”5 out of 100“</li>
+</ol>
+<p>大多数的UIKit组件都具有这些属性，你需要对属性进行相关的设置使VoiceOver的内容更有意义。</p>
+<h2 id="Accessibility-Inspector"><a href="#Accessibility-Inspector" class="headerlink" title="Accessibility Inspector"></a>Accessibility Inspector</h2><p>在修复上面所说的两个问题时，你将会用到Xcode的一个工具：Accessibility Inspector。它可以做的事情有：</p>
+<ul>
+<li>通过运行你的APP找到常见的辅助功能问题。</li>
+<li>允许你在检查模式下检查UI元素的辅助功能属性</li>
+<li>提供所有辅助元素的实时预览，而无需离开你的应用</li>
+<li>支持所有平台：macOS、iOS、watchOS和tvOS</li>
+</ul>
+<p>要想打开该工具，直接在Xcode菜单，然后Xcode–&gt;Open Developer Tool–&gt;Accessibility Inspector:<br><img src="https://raw.githubusercontent.com/ScottZg/MarkDownResource/master/accessibility/openaccessibilityInspector.png" alt="how open Accessibility Inspector"><br>它的主界面是这样的：<br><img src="https://raw.githubusercontent.com/ScottZg/MarkDownResource/master/accessibility/interface.png" alt="主界面"><br>在Target Chooser处，你可以选择不同的设备以及不同的APP。将Recipes工程使用模拟器运行，然后使用该工具选择模拟器。</p>
+<h3 id="Inspection-Pointer"><a href="#Inspection-Pointer" class="headerlink" title="Inspection Pointer"></a>Inspection Pointer</h3><p>选中Inspection Pointer,接下来将鼠标移动到模拟器，你会看到类似VoiceOver一样的选框，你可以使用该工具进行元素查看以及操作。<br>Inspection Deatil框会展示选中元素的一些信息以及操作:<br><img src="https://raw.githubusercontent.com/ScottZg/MarkDownResource/master/accessibility/detail.png" alt="详情框内容展示"></p>
+<h3 id="Inspector-Audit"><a href="#Inspector-Audit" class="headerlink" title="Inspector Audit"></a>Inspector Audit</h3><p>确定你的模拟器还在运行，并且当前展示的是食谱的列表，在inspector中，点击Audit 图标，然后点击Run audit。你会立即发现inspector已经找到一些缺少描述的元素。当你点击一个警告，模拟器中对应的元素会高亮。这种情况下，和cell关联的图片视图没有描述:<br><img src="https://raw.githubusercontent.com/ScottZg/MarkDownResource/master/accessibility/imagenodesc.png" alt="图片没有描述"><br>如果你点击 ？号的小按钮，你会得到一些建议来如何解决这个问题，你只需要按照它的建议做一些调整即可。<br><img src="https://raw.githubusercontent.com/ScottZg/MarkDownResource/master/accessibility/questionmark.png" alt="question mark image"><br>你（如果是QA同学）可以点击eye图标然后创建一个截图，方便向RD提交bug:<br><img src="https://raw.githubusercontent.com/ScottZg/MarkDownResource/master/accessibility/screenshot.png" alt="截图"></p>
+<h3 id="Inspector-Settings"><a href="#Inspector-Settings" class="headerlink" title="Inspector Settings"></a>Inspector Settings</h3><p>该工具还允许你测试下面的Accessibility设置：<br>1.Invert Color 反转颜色<br>2.Reduce Transparency  降低透明度<br>3.Reduce Motion 减少动画<br>4.Change font size 改变字体大小<br>你不再需要返回到设置APP中来设置这些特性。直接在Accessibility Inspector中操作即可。<br>尽管Accessibility Inspector可以做的事情很多，但是你还是应该手动去测试VoiceOver，来看看用户使用的时候究竟如何表现。</p>
+<h2 id="给Recipe-APP添加可访问性操作"><a href="#给Recipe-APP添加可访问性操作" class="headerlink" title="给Recipe APP添加可访问性操作"></a>给Recipe APP添加可访问性操作</h2><p>还看一下刚才的图片没有accessibility label。打开Xcode，然后打开RecipeCell.swift，然后添加下面的代码在文件的底部：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">RecipeCell</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">applyAccessibility</span><span class="params">(<span class="number">_</span> recipe: Recipe)</span></span> &#123;</span><br><span class="line">        foodImageView.accessibilityTraits = <span class="type">UIAccessibilityTraitImage</span></span><br><span class="line">        foodImageView.accessibilityLabel = recipe.photoDescription</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这段代码添加了确实的辅助功能属性：</p>
+<ol>
+<li>accessibilityTraits采用了表征可访问性元素的特性掩码。在这种情况下，UIAccessibilityTraitImage表示它是一个图像</li>
+<li>accessibilityLabel 是用来描述元素。这里用了recipe.photoDescription，它代表对图片的内容描述。可以在VoiceOver中读出。</li>
+</ol>
+<p>在RecipeCell中找到configureCell( _ : )，然后添加下面一行代码到方法的结尾：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">applyAccessibility(recipe)</span><br></pre></td></tr></table></figure>
+<p>然后在真机上运行，（打开VoiceOver）再次点击图像，你就会听到读的内容(为photoDescription)。<br>这样不是更好吗？不是听到的image，而是提供了详细的图片描述，用户可以想象这种食物，而不是对图片内容一无所知。</p>
+<h2 id="难以接触的Label"><a href="#难以接触的Label" class="headerlink" title="难以接触的Label"></a>难以接触的Label</h2><p>接下来处理一下食谱难度的label。你需要使这些label可以访问，并且更新它的属性信息，提供有意义的描述。<br>在RecipeCell.swift中，添加下面的代码到applyAccessibility( _ : ):</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">difficultyLabel.isAccessibilityElement = <span class="literal">true</span></span><br><span class="line">difficultyLabel.accessibilityTraits = <span class="type">UIAccessibilityTraitNone</span></span><br><span class="line">difficultyLabel.accessibilityLabel = <span class="string">"Difficult Label"</span></span><br><span class="line"><span class="keyword">switch</span> recipe.difficulty &#123;</span><br><span class="line"><span class="keyword">case</span> .unknown:</span><br><span class="line">    difficultyLabel.accessibilityValue = <span class="string">"Unkown"</span></span><br><span class="line"><span class="keyword">case</span> .rating(<span class="keyword">let</span> value):</span><br><span class="line">    difficultyLabel.accessibilityValue = <span class="string">"<span class="subst">\(value)</span>"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下面是对上述代码的一些介绍：</p>
+<ol>
+<li>isAccessibilityElements是一个标识，当为true的时候，该item对accessibility可见。对于大多数的UIKit元素，默认值为true，但是对于UILabel，默认值是false</li>
+<li>accessibilityTraits表示可访问元素。因为不需要交互，只需要将其设置为UIAccessibilityTraitNone即可。</li>
+<li>接下来，你就需要设置VoiceOver读出来的内容了。”Difficulty Level”告知用户这个元素是做什么的</li>
+<li>accessibilityValue是设置困难等级，使元素变得更加有意义</li>
+</ol>
+<p>接下来打开VoiceOver并重新编辑运行，此时点击困难等级，便会阅读”Difficulty Level 1/2/3/4/5“。</p>
+<h2 id="再次检查警告"><a href="#再次检查警告" class="headerlink" title="再次检查警告"></a>再次检查警告</h2><p>每次你公开新的辅助功能元素时，再次运行一次。你会发现如下警告：<br><img src="https://raw.githubusercontent.com/ScottZg/MarkDownResource/master/accessibility/dynamicfont.png" alt="字体大小警告"><br>用户将无法改变label字体的大小。点击？号按钮，按照其提供的建议修改即可。<br>在RecipeCell.swift中的applyAccessibility( _ : )方法底部，添加如下代码：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">difficultyLabel.font = <span class="type">UIFont</span>.preferredFont(forTextStyle: .body)</span><br><span class="line">difficultyLabel.adjustsFontForContentSizeCategory = <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+<p>设置preferedFont为body意味着将Label的font设置为正文样式，大小和字体的细节取决于辅助功能设置。adjustsFontForContentSizeCategory是iOS10的新特性，表示当用户更改文本内容大小时，字体应自动更新。<br>其他的功能自己可以使用真机进行更改查看。其中的Invert Color为反转颜色。具有敏感性、视力不佳或者在某些情况下色盲的用户，可以使用此功能。<br>此时，使用Inspector工具提供的改变字体大小功能便可以调整字体的大小。</p>
+<h2 id="Recipe-Detail-Screen"><a href="#Recipe-Detail-Screen" class="headerlink" title="Recipe Detail Screen"></a>Recipe Detail Screen</h2><p>接下来看一下食谱的详情页面。你会发现下面的问题：</p>
+<ol>
+<li>返回按钮并没有很好的描述出navigation buttton,导致用户不知道按钮是做什么用的，设置为返回button可能会更好。</li>
+<li>点击表情，VoiceOver读出的内容无法描述出来按钮具体是做什么的。</li>
+<li>checkbox也没有表达出来相应的意思。相比于内容阅读，用户更关心的是当前的状态是什么含义。</li>
+</ol>
+<p>打开RecipeInstructionsViewController.swift，然后添加下面的代码到viewDidLoad中(assert(recipe != nil)后面)：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">backButton.accessibilityLabel = <span class="string">"back"</span></span><br><span class="line">backButton.accessibilityTraits = <span class="type">UIAccessibilityTraitButton</span></span><br></pre></td></tr></table></figure>
+<p>此时，VoiceOver将会说出”back button“，而不是”left arrow button“。<br>还是在这个文件中，使用下面的代码替换isLikedFoot( _ : ):</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">isLikedFood</span><span class="params">(<span class="number">_</span> liked: Bool)</span></span> &#123;</span><br><span class="line">  <span class="keyword">if</span> liked &#123;</span><br><span class="line">      likeButton.setTitle(<span class="string">"😍"</span>, <span class="keyword">for</span>: .normal)</span><br><span class="line">      likeButton.accessibilityLabel = <span class="string">"like"</span></span><br><span class="line">      likeButton.accessibilityTraits = <span class="type">UIAccessibilityTraitButton</span></span><br><span class="line">      didLikeFood = <span class="literal">true</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      likeButton.setTitle(<span class="string">"😖"</span>, <span class="keyword">for</span>: .normal)</span><br><span class="line">      likeButton.accessibilityLabel = <span class="string">"Dislike"</span></span><br><span class="line">      likeButton.accessibilityTraits = <span class="type">UIAccessibilityTraitButton</span></span><br><span class="line">      didLikeFood = <span class="literal">false</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样喜欢和不喜欢的按钮便有了比较明显的含义。再次运行可以查看。<br>接下来就是checklist。打开InstructionCell.swift，然后查看shouldStrikeThroughText( _ : )，替换if strikeThrough为下面代码：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">checkmarkButton.isAccessibilityElement = <span class="literal">false</span></span><br><span class="line">   <span class="keyword">if</span> strikeThrough &#123;</span><br><span class="line">       descriptionLabel.accessibilityLabel = <span class="string">"Complete <span class="subst">\(text)</span>"</span></span><br><span class="line">  attributeString.addAttribute(<span class="type">NSAttributedStringKey</span>.strikethroughStyle, value: <span class="number">2</span>, range: <span class="type">NSMakeRange</span>(<span class="number">0</span>, attributeString.length))</span><br><span class="line">   &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">       descriptionLabel.accessibilityLabel = <span class="string">"UnComplete <span class="subst">\(text)</span>"</span></span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p>接下来点击步骤，便可以清楚地告知用户是否完成步骤。</p>
+<h1 id="结束"><a href="#结束" class="headerlink" title="结束"></a>结束</h1><p>这里只是对Accessibility做了一个入门的介绍，告诉用户工具的使用以及简单的关于Accessibility的属性的赋值操作。</p>
+<p>原文整体内容翻译自<a href="https://www.raywenderlich.com/142058/ios-accessibility-tutorial" target="_blank" rel="noopener">iOS Accessibility Tutorial: Getting Started</a>，但是里面的内容有所调整。有些内容不代表原作观点。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p>1.<a href="https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/iPhoneAccessibility/Making_Application_Accessible/Making_Application_Accessible.html#//apple_ref/doc/uid/TP40008785-CH102-SW4" target="_blank" rel="noopener">Making Your iOS App Accessible</a><br>2.<a href="https://www.raywenderlich.com/142058/ios-accessibility-tutorial" target="_blank" rel="noopener">iOS Accessibility Tutorial: Getting Started</a></p>
+</div><div class="tags"><a href="/tags/Accessibility/">Accessibility</a></div><div class="post-nav"><a class="pre" href="/2018/08/05/live-photo-guide/">LivePhoto开发指南</a></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form class="search-form" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="http://supermokey.com"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/iOS/">iOS</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/Accessibility/" style="font-size: 15px;">Accessibility</a> <a href="/tags/LivePhoto/" style="font-size: 15px;">LivePhoto</a> <a href="/tags/HEVC/" style="font-size: 15px;">HEVC</a> <a href="/tags/HEIF/" style="font-size: 15px;">HEIF</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2018/08/05/live-photo-guide/">LivePhoto开发指南</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/08/03/ios-accessibility-guide/">iOS Accessibility 指南</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 超链接</i></div><ul></ul><a href="http://www.example1.com/" title="site-name1" target="_blank">site-name1</a><ul></ul><a href="http://www.example2.com/" title="site-name2" target="_blank">site-name2</a><ul></ul><a href="http://www.example3.com/" title="site-name3" target="_blank">site-name3</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">我不是掌柜.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.3.5/jquery.fancybox.min.css"><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
